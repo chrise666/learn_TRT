@@ -1,0 +1,7 @@
+# Visual Studio Code
+.vscode/
+
+# 忽略特定目录
+build/
+bin/
+onnx/
