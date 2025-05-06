@@ -1,5 +1,5 @@
 # 添加项目自身的库和依赖
-set(CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6") # 设置 cuda 路径
+set(CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8") # 设置 cuda 路径
 set(TENSORRT_DIR "E:/workspace/TensorRT-10.9.0.34") # 设置 TensorRT 路径
 
 aux_source_directory(. SRC) # 添加同级目录下的所有源文件
