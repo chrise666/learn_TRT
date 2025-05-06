@@ -1,3 +1,0 @@
-E:/workspace/learn_TRT/build/CMakeFiles/ALL_BUILD.dir
-E:/workspace/learn_TRT/build/CMakeFiles/ZERO_CHECK.dir
-E:/workspace/learn_TRT/build/src/CMakeFiles/demo.dir
