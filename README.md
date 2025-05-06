@@ -1,1 +1,1 @@
-模型部署与TrnsorRT平台（mmdeploy）
+模型部署与TensorRT平台（mmdeploy）

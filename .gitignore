@@ -1,7 +1,7 @@
-# Visual Studio Code
+# --- IDE Files ---
 .vscode/
 
-# 忽略特定目录
+# --- Build Files ---
 build/
 bin/
 onnx/
