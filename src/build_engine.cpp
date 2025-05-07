@@ -1,4 +1,4 @@
-#include "build_engine.h"
+#include "trt_base.h"
 #include <stdio.h>
 #include <memory>
 #include <stdexcept>
@@ -19,15 +19,6 @@ using UniqueNetwork = std::unique_ptr<nvinfer1::INetworkDefinition, TensorRTDele
 using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine, TensorRTDeleter>;
 using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory, TensorRTDeleter>;
 
-
-class TRTLogger : public nvinfer1::ILogger {
-public:
-    virtual void log(Severity severity, nvinfer1::AsciiChar const* msg) noexcept override {
-        if (severity <= Severity::kVERBOSE) {
-            printf("%d: %s\n", severity, msg);
-        }
-    }
-};
 
 // 权重创建函数
 nvinfer1::Weights make_weights(float* ptr, int n) {
@@ -56,9 +47,8 @@ UniqueNetwork buildNetwork(nvinfer1::IBuilder* builder) {
     float layer1_weight_values[] = {1.0, 2.0, 0.5, 0.1, 0.2, 0.5}; // 前3个给w1的rgb，后3个给w2的rgb 
     float layer1_bias_values[]   = {0.3, 0.8};
 
-    // 创建网络定义，其中createNetworkV2(1)表示采用显性batch size，新版tensorRT(>=7.0)时，不建议采用0非显性batch size
-    // 因此贯穿以后，请都采用createNetworkV2(1)而非createNetworkV2(0)或者createNetwork
-    UniqueNetwork network(builder->createNetworkV2(1));
+    const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    UniqueNetwork network(builder->createNetworkV2(explicitBatch));
 
     //输入指定数据的名称、数据类型和完整维度，将输入层添加到网络
     nvinfer1::ITensor* input = network->addInput("image", 
@@ -137,7 +127,7 @@ void createEngine() {
 
     // 1. 创建基础组件
     // 形象的理解是你需要一个builder去build这个网络，网络自身有结构，这个结构可以有不同的配置
-    UniqueBuilder builder(nvinfer1::createInferBuilder(logger));
+    UniqueBuilder builder(createInferBuilder(logger));
     // 创建一个构建配置，指定TensorRT应该如何优化模型，tensorRT生成的模型只能在特定配置下运行
     UniqueConfig config(builder->createBuilderConfig());
     

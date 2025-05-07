@@ -1,4 +1,5 @@
 #include "build_engine.h"
+#include "trt_base.h"
 #include <stdio.h>
 #include <stdexcept>
 
