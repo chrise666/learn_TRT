@@ -9,24 +9,28 @@
 // cuda include
 #include <cuda_runtime.h>
 
+// c++ standard library
+#include <memory>
+#include <stdexcept>
 
-using namespace nvinfer1;
+
+using Severity = nvinfer1::ILogger::Severity;
 
 
-inline const char* severity_string(ILogger::Severity t){
+inline const char* severity_string(Severity t){
     switch(t){
-        case ILogger::Severity::kINTERNAL_ERROR: return "internal_error";
-        case ILogger::Severity::kERROR:   return "error";
-        case ILogger::Severity::kWARNING: return "warning";
-        case ILogger::Severity::kINFO:    return "info";
-        case ILogger::Severity::kVERBOSE: return "verbose";
+        case Severity::kINTERNAL_ERROR: return "internal_error";
+        case Severity::kERROR:   return "error";
+        case Severity::kWARNING: return "warning";
+        case Severity::kINFO:    return "info";
+        case Severity::kVERBOSE: return "verbose";
         default: return "unknow";
     }
 }
 
-class TRTLogger : public ILogger{
+class TRTLogger : public nvinfer1::ILogger{
 public:
-    virtual void log(Severity severity, AsciiChar const* msg) noexcept override{
+    virtual void log(Severity severity, nvinfer1::AsciiChar const* msg) noexcept override{
         if(severity <= Severity::kINFO){
             // 打印带颜色的字符，格式如下：
             // printf("\033[47;33m打印的文本\033[0m");
@@ -52,11 +56,20 @@ public:
 };
 extern TRTLogger logger;
 
+// 自定义删除器用于智能指针管理TensorRT对象
+struct TensorRTDeleter {
+    void operator()(nvinfer1::IHostMemory* ptr) { if (ptr) delete ptr; }
+    void operator()(nvinfer1::IBuilder* ptr) { if (ptr) delete ptr; }
+    void operator()(nvinfer1::IBuilderConfig* ptr) { if (ptr) delete ptr; }
+    void operator()(nvinfer1::INetworkDefinition* ptr) { if (ptr) delete ptr; }
+    void operator()(nvinfer1::ICudaEngine* ptr) { if (ptr) delete ptr; }
+};
 
-// void createEngine();
-// void createEnginefromONNX(const char* onnx_path, const char* engine_name);
-
-// void inference();
-// void inference_dynamic(const char* engine_path);
+// 智能指针类型别名
+using UniqueBuilder = std::unique_ptr<nvinfer1::IBuilder, TensorRTDeleter>;
+using UniqueConfig = std::unique_ptr<nvinfer1::IBuilderConfig, TensorRTDeleter>;
+using UniqueNetwork = std::unique_ptr<nvinfer1::INetworkDefinition, TensorRTDeleter>;
+using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine, TensorRTDeleter>;
+using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory, TensorRTDeleter>;
 
 #endif

@@ -1,24 +1,7 @@
 #include "trt_base.h"
-#include <stdio.h>
-#include <memory>
-#include <stdexcept>
 
 
-// 自定义删除器用于智能指针管理TensorRT对象
-struct TensorRTDeleter {
-    void operator()(nvinfer1::IHostMemory* ptr) { if (ptr) delete ptr; }
-    void operator()(nvinfer1::IBuilder* ptr) { if (ptr) delete ptr; }
-    void operator()(nvinfer1::IBuilderConfig* ptr) { if (ptr) delete ptr; }
-    void operator()(nvinfer1::INetworkDefinition* ptr) { if (ptr) delete ptr; }
-    void operator()(nvinfer1::ICudaEngine* ptr) { if (ptr) delete ptr; }
-};
-// 智能指针类型别名
-using UniqueBuilder = std::unique_ptr<nvinfer1::IBuilder, TensorRTDeleter>;
-using UniqueConfig = std::unique_ptr<nvinfer1::IBuilderConfig, TensorRTDeleter>;
-using UniqueNetwork = std::unique_ptr<nvinfer1::INetworkDefinition, TensorRTDeleter>;
-using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine, TensorRTDeleter>;
-using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory, TensorRTDeleter>;
-
+using namespace nvinfer1;
 
 // 权重创建函数
 nvinfer1::Weights make_weights(float* ptr, int n) {
@@ -30,17 +13,6 @@ nvinfer1::Weights make_weights(float* ptr, int n) {
 }
 
 // 网络构建函数
-/*
-    Network definition:
-
-    image
-      |
-    linear (fully connected)  input = 3, output = 2, bias = True     w=[[1.0, 2.0, 0.5], [0.1, 0.2, 0.5]], b=[0.3, 0.8]
-      |
-    sigmoid
-      |
-    prob
-*/
 UniqueNetwork buildNetwork(nvinfer1::IBuilder* builder) {
     const int num_input = 3;   // in_channel
     const int num_output = 2;  // out_channel
