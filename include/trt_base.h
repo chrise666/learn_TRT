@@ -58,11 +58,12 @@ extern TRTLogger logger;
 
 // 自定义删除器用于智能指针管理TensorRT对象
 struct TensorRTDeleter {
-    void operator()(nvinfer1::IHostMemory* ptr) { if (ptr) delete ptr; }
     void operator()(nvinfer1::IBuilder* ptr) { if (ptr) delete ptr; }
     void operator()(nvinfer1::IBuilderConfig* ptr) { if (ptr) delete ptr; }
     void operator()(nvinfer1::INetworkDefinition* ptr) { if (ptr) delete ptr; }
     void operator()(nvinfer1::ICudaEngine* ptr) { if (ptr) delete ptr; }
+    void operator()(nvinfer1::IHostMemory* ptr) { if (ptr) delete ptr; }
+    void operator()(nvonnxparser::IParser* ptr) { if (ptr) delete ptr; }
 };
 
 // 智能指针类型别名
@@ -71,5 +72,6 @@ using UniqueConfig = std::unique_ptr<nvinfer1::IBuilderConfig, TensorRTDeleter>;
 using UniqueNetwork = std::unique_ptr<nvinfer1::INetworkDefinition, TensorRTDeleter>;
 using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine, TensorRTDeleter>;
 using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory, TensorRTDeleter>;
+using UniqueParser = std::unique_ptr<nvonnxparser::IParser, TensorRTDeleter>;
 
 #endif
