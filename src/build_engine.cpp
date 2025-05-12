@@ -1,12 +1,10 @@
-#include "trt_base.h"
 #include "trt_unit.h"
 #include "build_model.h"
 
 using namespace nvinfer1;
 
 
-void createEngine() {
-    TRTLogger logger;
+void createEngine(TRTLogger logger) {
     // 1. 创建基础组件
     // 形象的理解是你需要一个builder去build这个网络，网络自身有结构，这个结构可以有不同的配置
     UniqueBuilder builder(createInferBuilder(logger));
@@ -14,7 +12,7 @@ void createEngine() {
     UniqueConfig config(builder->createBuilderConfig());
     
     // 2. 构建网络
-    UniqueNetwork network = buildNetwork_FC(buildNetwork(builder));
+    UniqueNetwork network = buildNetwork_FC(buildNetwork(logger, builder));
 
     // 3. 构建引擎
     UniqueEngine engine = buildEngine(builder, network, config);

@@ -1,7 +1,9 @@
 #ifndef BUILD_ENGINE_H
 #define BUILD_ENGINE_H
 
-void createEngine();
+#include "trt_base.h"
+
+void createEngine(TRTLogger logger);
 
 
 #endif

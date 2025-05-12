@@ -1,4 +1,5 @@
 #include "trt_unit.h"
+#include <stdexcept>
 
 using namespace nvinfer1;
 
@@ -12,7 +13,7 @@ Weights make_weights(float* ptr, int n) {
 }
 
 // 网络构建函数
-UniqueNetwork buildNetwork(UniqueBuilder& builder, bool from_onnx, const char* onnx_path) {
+UniqueNetwork buildNetwork(TRTLogger logger, UniqueBuilder& builder, bool from_onnx, const char* onnx_path) {
     const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     
     UniqueNetwork network(builder->createNetworkV2(explicitBatch));
@@ -21,8 +22,6 @@ UniqueNetwork buildNetwork(UniqueBuilder& builder, bool from_onnx, const char* o
     }
 
     if (from_onnx) {
-        TRTLogger logger;
-        
         // 通过onnxparser解析的结果会填充到network中，类似addConv的方式添加进去
         UniqueParser parser(nvonnxparser::createParser(*network, logger));
         if(!parser->parseFromFile(onnx_path, 1)){

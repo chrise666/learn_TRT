@@ -4,9 +4,13 @@
 
 
 int main() {
-    try {
-        createEngine();
-    } catch (const std::exception& e) {
+    try 
+    {
+        TRTLogger logger;
+        createEngine(logger);
+    } 
+    catch (const std::exception& e) 
+    {
         fprintf(stderr, "Error: %s\n", e.what());
         return -1;
     }
