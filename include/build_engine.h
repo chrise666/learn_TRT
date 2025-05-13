@@ -3,7 +3,7 @@
 
 #include "trt_base.h"
 
-void createEngine(TRTLogger logger);
+bool createEngine(TRTLogger logger);
 
 
 #endif

@@ -7,7 +7,7 @@ int main() {
     try 
     {
         TRTLogger logger;
-        createEngine(logger);
+        auto success = createEngine(logger);
     } 
     catch (const std::exception& e) 
     {

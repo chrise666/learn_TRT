@@ -16,7 +16,7 @@ using namespace nvinfer1;
       |
     prob
 */
-UniqueNetwork buildNetwork_FC(UniqueNetwork network) {
+void buildNetwork_FC(UniqueNetwork& network) {
     const int num_input = 3;   // in_channel
     const int num_output = 2;  // out_channel
     float layer1_weight_values[] = {1.0, 2.0, 0.5, 0.1, 0.2, 0.5}; // 前3个给w1的rgb，后3个给w2的rgb 
@@ -62,8 +62,6 @@ UniqueNetwork buildNetwork_FC(UniqueNetwork network) {
     auto prob = network->addActivation(*bias_add->getOutput(0), ActivationType::kSIGMOID);  // 注意更严谨的写法是*(layer1->getOutput(0)) 即对getOutput返回的指针进行解引用
     // 将我们需要的prob标记为输出    
     network->markOutput(*prob->getOutput(0));
-
-    return network;
 }
 
 // 构建CNN网络

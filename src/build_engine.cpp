@@ -1,26 +1,44 @@
 #include "trt_unit.h"
-#include "build_model.h"
+
 
 using namespace nvinfer1;
 
 
-void createEngine(TRTLogger logger) {
+bool createEngine(TRTLogger logger) {
     // 1. 创建基础组件
     // 形象的理解是你需要一个builder去build这个网络，网络自身有结构，这个结构可以有不同的配置
-    UniqueBuilder builder(createInferBuilder(logger));
+    auto builder = UniqueBuilder(createInferBuilder(logger));
+    if (!builder)
+    {
+        return false;
+    }
     // 创建一个构建配置，指定TensorRT应该如何优化模型，tensorRT生成的模型只能在特定配置下运行
-    UniqueConfig config(builder->createBuilderConfig());
+    auto config = UniqueConfig(builder->createBuilderConfig());
+    if (!config)
+    {
+        return false;
+    }
     
     // 2. 构建网络
-    UniqueNetwork network = buildNetwork_FC(buildNetwork(logger, builder));
+    auto network = buildNetwork(logger, builder);
+    if (!network)
+    {
+        return false;
+    }
 
     // 3. 构建引擎
-    UniqueEngine engine = buildEngine(builder, network, config);
+    auto engine = buildEngine(builder, network, config);
+    if (!engine)
+    {
+        return false;
+    }
 
     // 4. 保存模型
     saveEngine(engine, "trtmodel.engine");
 
     printf("Done.\n");
+    
+    return true;
 }
 
 // void createEnginefromONNX(const char* onnx_path, const char* engine_name) {

@@ -3,7 +3,7 @@
 
 #include "trt_base.h"
 
-UniqueNetwork buildNetwork_FC(UniqueNetwork network);
+void buildNetwork_FC(UniqueNetwork& network);
 
 
 #endif
