@@ -1,10 +1,9 @@
 #include "trt_unit.h"
 
-
 using namespace nvinfer1;
 
 
-bool createEngine(TRTLogger logger) {
+bool createEngine(TRTLogger& logger, const char* onnx_path) {
     // 1. 创建基础组件
     // 形象的理解是你需要一个builder去build这个网络，网络自身有结构，这个结构可以有不同的配置
     auto builder = UniqueBuilder(createInferBuilder(logger));
@@ -20,7 +19,7 @@ bool createEngine(TRTLogger logger) {
     }
     
     // 2. 构建网络
-    auto network = buildNetwork(logger, builder);
+    auto network = buildNetwork(logger, builder, onnx_path);
     if (!network)
     {
         return false;

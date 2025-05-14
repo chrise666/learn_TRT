@@ -1,6 +1,4 @@
-#include "build_engine.h"
-#include "inference.h"
-#include <stdio.h>
+#include "trt_api.h"
 #include <stdexcept>
 
 
@@ -8,8 +6,10 @@ int main() {
     try 
     {
         TRTLogger logger;
-        // auto success = createEngine(logger);
-        inference(logger);
+        const char* onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
+
+        auto success = createEngine(logger, onnx_path);
+        // inference(logger);
     } 
     catch (const std::exception& e) 
     {
