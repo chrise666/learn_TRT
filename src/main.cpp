@@ -8,7 +8,7 @@ int main() {
         TRTLogger logger;
         const char* onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
 
-        auto success = createEngine(logger, onnx_path);
+        auto success = createEngine(logger, onnx_path, true);
         // inference(logger);
     } 
     catch (const std::exception& e) 

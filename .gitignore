@@ -5,3 +5,4 @@
 build/
 bin/
 onnx/
+pytorch/__pycache__/

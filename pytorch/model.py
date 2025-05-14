@@ -18,6 +18,6 @@ class SimpleCNN(nn.Module):
         x = self.conv1(x)
         x = self.relu(x)
         x = self.pool(x)
-        x = x.view(x.size(0), -1)  # 展平
+        x = x.flatten(1)  # 展平，适合ONNX和TensorRT
         x = self.fc(x)
         return x

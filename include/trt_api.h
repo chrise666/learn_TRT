@@ -3,7 +3,7 @@
 
 #include "trt_base.h"
 
-bool createEngine(TRTLogger& logger, const char* onnx_path=nullptr);
+bool createEngine(TRTLogger& logger, const char* onnx_path=nullptr, bool dynamic_Dim=false);
 
 void inference(TRTLogger logger);
 
