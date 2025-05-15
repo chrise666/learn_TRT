@@ -6,7 +6,7 @@ int main() {
     try 
     {
         TRTLogger logger;
-        const char* onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
+        const char* onnx_path = "E:/workspace/learn_TRT/onnx/FullyConvolutionalNetwork.onnx";
 
         auto success = createEngine(logger, onnx_path, true);
         // inference(logger);
