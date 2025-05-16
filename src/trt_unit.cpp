@@ -23,7 +23,7 @@ UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, const char
 
     // 通过onnxparser解析的结果会填充到network中，类似addConv的方式添加进去
     auto parser = UniqueParser(nvonnxparser::createParser(*network, logger));
-    if(!parser->parseFromFile(onnx_path, 1)){
+    if(!parser->parseFromFile(onnx_path, 2)){
         printf("Error: %s\n", parser->getError(0)->desc());
         throw std::runtime_error("Failed to parse ONNX model");
     }

@@ -6,9 +6,11 @@ int main() {
     try 
     {
         TRTLogger logger;
-        const char* onnx_path = "E:/workspace/learn_TRT/onnx/FullyConvolutionalNetwork.onnx";
+        const char* onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
 
-        auto success = createEngine(logger, onnx_path, true);
+        // auto success = createEngine(logger, onnx_path, true);
+        // auto success = createEngine(logger, nullptr, true);
+        auto success = createEngine(logger);
         // inference(logger);
     } 
     catch (const std::exception& e) 

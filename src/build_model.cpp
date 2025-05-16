@@ -1,5 +1,5 @@
 #include "trt_unit.h"
-
+#include <stdexcept>
 
 using namespace nvinfer1;
 
@@ -16,7 +16,14 @@ using namespace nvinfer1;
       |
     prob
 */
-void buildNetwork_FC(UniqueNetwork& network) {
+UniqueNetwork buildNetwork_FC(TRTLogger& logger, UniqueBuilder& builder) {
+    const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    
+    auto network = UniqueNetwork(builder->createNetworkV2(explicitBatch));
+    if (!network) {
+        throw std::runtime_error("Failed to create network");
+    }
+
     const int num_input = 3;   // in_channel
     const int num_output = 2;  // out_channel
     float layer1_weight_values[] = {1.0, 2.0, 0.5, 0.1, 0.2, 0.5}; // 前3个给w1的rgb，后3个给w2的rgb 
@@ -62,6 +69,8 @@ void buildNetwork_FC(UniqueNetwork& network) {
     auto prob = network->addActivation(*bias_add->getOutput(0), ActivationType::kSIGMOID);  // 注意更严谨的写法是*(layer1->getOutput(0)) 即对getOutput返回的指针进行解引用
     // 将我们需要的prob标记为输出    
     network->markOutput(*prob->getOutput(0));
+
+    return network;
 }
 
 // 构建CNN网络
@@ -76,28 +85,35 @@ void buildNetwork_FC(UniqueNetwork& network) {
         |
     prob
 */
-// UniqueNetwork buildNetwork_CNN(UniqueNetwork network) {
-//     const int num_input = 1;
-//     const int num_output = 1;
-//     float layer1_weight_values[] = {
-//         1.0, 2.0, 3.1, 
-//         0.1, 0.1, 0.1, 
-//         0.2, 0.2, 0.2
-//     }; // 行优先
-//     float layer1_bias_values[]   = {0.0};
+UniqueNetwork buildNetwork_CNN(TRTLogger& logger, UniqueBuilder& builder) {
+    const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+    
+    auto network = UniqueNetwork(builder->createNetworkV2(explicitBatch));
+    if (!network) {
+        throw std::runtime_error("Failed to create network");
+    }
 
-//     //输入指定数据的名称、数据类型和完整维度，将输入层添加到网络
-//     ITensor* input = network->addInput("image", DataType::kFLOAT, Dims4(-1, num_input, -1, -1));
-//     Weights layer1_weight = make_weights(layer1_weight_values, 9);
-//     Weights layer1_bias   = make_weights(layer1_bias_values, 1);
+    const int num_input = 1;
+    const int num_output = 1;
+    float layer1_weight_values[] = {
+        1.0, 2.0, 3.1, 
+        0.1, 0.1, 0.1, 
+        0.2, 0.2, 0.2
+    }; // 行优先
+    float layer1_bias_values[]   = {0.0};
 
-//     auto layer1 = network->addConvolution(*input, num_output, nvinfer1::DimsHW(3, 3), layer1_weight, layer1_bias);
-//     layer1->setPadding(nvinfer1::DimsHW(1, 1));
+    //输入指定数据的名称、数据类型和完整维度，将输入层添加到网络
+    ITensor* input = network->addInput("image", DataType::kFLOAT, Dims4(-1, num_input, 3, 3));
+    Weights layer1_weight = make_weights(layer1_weight_values, 9);
+    Weights layer1_bias   = make_weights(layer1_bias_values, 1);
 
-//     auto prob = network->addActivation(*layer1->getOutput(0), nvinfer1::ActivationType::kRELU); // *(layer1->getOutput(0))
+    auto layer1 = network->addConvolutionNd(*input, num_output, Dims{2, {3, 3}}, layer1_weight, layer1_bias);
+    layer1->setPaddingNd(Dims{2, {1, 1}});
+
+    auto prob = network->addActivation(*layer1->getOutput(0), nvinfer1::ActivationType::kRELU); // *(layer1->getOutput(0))
      
-//     // 将我们需要的prob标记为输出
-//     network->markOutput(*prob->getOutput(0));
+    // 将我们需要的prob标记为输出
+    network->markOutput(*prob->getOutput(0));
 
-//     return network;
-// }
+    return network;
+}

@@ -69,10 +69,10 @@ using UniqueBuilder = std::unique_ptr<nvinfer1::IBuilder>;
 using UniqueConfig = std::unique_ptr<nvinfer1::IBuilderConfig>;
 using UniqueNetwork = std::unique_ptr<nvinfer1::INetworkDefinition>;
 using UniqueParser = std::unique_ptr<nvonnxparser::IParser>;
-using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory>;
+using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine>;
 using UniqueRuntime = std::unique_ptr<nvinfer1::IRuntime>;
 using UniqueExecutionContext = std::unique_ptr<nvinfer1::IExecutionContext>;
-using UniqueEngine = std::unique_ptr<nvinfer1::ICudaEngine>;
+using UniqueHostMemory = std::unique_ptr<nvinfer1::IHostMemory>;
 
 
 #endif

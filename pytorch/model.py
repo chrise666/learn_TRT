@@ -11,8 +11,6 @@ class SimpleCNN(nn.Module):
         self.relu = nn.ReLU()
         # 最大池化
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        # 展平
-        self.flatten = nn.Flatten(start_dim=1)
         # 全连接层
         self.fc = nn.Linear(16 * 16 * 16, 10)  # 假设输入图像为32x32
 
@@ -20,7 +18,7 @@ class SimpleCNN(nn.Module):
         x = self.conv1(x)
         x = self.relu(x)
         x = self.pool(x)
-        x = self.flatten(x) 
+        x = x.view(-1, int(x.numel() // x.size(0)))
         x = self.fc(x)
         return x
 

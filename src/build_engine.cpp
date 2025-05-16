@@ -19,13 +19,23 @@ bool createEngine(TRTLogger& logger, const char* onnx_path, bool dynamic_Dim) {
     }
     
     // 2. 构建网络
-    auto network = buildNetwork(logger, builder, onnx_path);
+    // auto network = buildNetwork(logger, builder, onnx_path);
+    // auto network = buildNetwork_CNN(logger, builder);
+    auto network = buildNetwork_FC(logger, builder);
     if (!network)
     {
         return false;
     }
 
     // 3. 构建引擎
+    // CUDA stream used for profiling by the builder.
+    auto profileStream = makeCudaStream();
+    if (!profileStream)
+    {
+        return false;
+    }
+    config->setProfileStream(*profileStream);
+
     auto engine = buildEngine(builder, network, config, dynamic_Dim);
     if (!engine)
     {

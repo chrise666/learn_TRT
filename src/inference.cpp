@@ -22,9 +22,9 @@ auto load_file(const std::string& file) {
   return data;
 }
 
-void inference(TRTLogger logger){
+void inference(TRTLogger logger, const char* engine_path){
     // ------------------------------ 1. 准备模型并加载   ----------------------------    
-    auto engine_data = load_file("trtmodel.engine");
+    auto engine_data = load_file(engine_path);
 
     // 执行推理前，需要创建一个推理的runtime接口实例。与builer一样，runtime需要logger：
     auto runtime = UniqueRuntime(createInferRuntime(logger));
@@ -37,8 +37,8 @@ void inference(TRTLogger logger){
 
     auto execution_context = UniqueExecutionContext(engine->createExecutionContext());
 
-    cudaStream_t stream = nullptr;
     // 创建CUDA流，以确定这个batch的推理是独立的
+    cudaStream_t stream = nullptr;
     cudaStreamCreate(&stream);
 
     /*
