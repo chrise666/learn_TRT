@@ -6,6 +6,25 @@
 using namespace nvinfer1;
 
 
+/*
+    Network definition:
+
+    image
+      |
+    linear (fully connected)  input = 3, output = 2, bias = True     w=[[1.0, 2.0, 0.5], [0.1, 0.2, 0.5]], b=[0.3, 0.8]
+      |
+    sigmoid
+      |
+    prob
+*/
+// float input_data_host[] = {1, 2, 3};
+// float output_data_host[2];
+
+// 读取数据并分配内存
+float get_data() {
+
+}
+
 // 定义一个函数来加载文件
 auto load_file(const std::string& file) {
   std::ifstream in(file, std::ios::in | std::ios::binary);
@@ -22,54 +41,63 @@ auto load_file(const std::string& file) {
   return data;
 }
 
-void inference(TRTLogger logger, const char* engine_path){
+bool inference(TRTLogger logger, const char* engine_path, float input_data_host[], float output_data_host[]) {
     // ------------------------------ 1. 准备模型并加载   ----------------------------    
     auto engine_data = load_file(engine_path);
+    if (engine_data.empty())
+    {
+        return false;
+    }
 
     // 执行推理前，需要创建一个推理的runtime接口实例。与builer一样，runtime需要logger：
     auto runtime = UniqueRuntime(createInferRuntime(logger));
+    if (!runtime)
+    {
+        throw std::runtime_error("Create infer runtime failed.");
+        return false;
+    }
 
-    // 将模型从读取到engine_data中，则可以对其进行反序列化以获得engine
+    // 将模型读取到engine_data中，则可以对其进行反序列化以获得engine
     auto engine = UniqueEngine(runtime->deserializeCudaEngine(engine_data.data(), engine_data.size()));
-    if(engine == nullptr){
-        printf("Deserialize cuda engine failed.\n");
+    if (!engine)
+    {
+        throw std::runtime_error("Deserialize cuda engine failed.");
+        return false;
     }
 
     auto execution_context = UniqueExecutionContext(engine->createExecutionContext());
+    if (!execution_context)
+    {
+        throw std::runtime_error("Create execution context failed.");
+        return false;
+    }
 
+    // ------------------------------ 2. 准备好要推理的数据并搬运到GPU   ----------------------------
     // 创建CUDA流，以确定这个batch的推理是独立的
     cudaStream_t stream = nullptr;
     cudaStreamCreate(&stream);
-
-    /*
-        Network definition:
-
-        image
-          |
-        linear (fully connected)  input = 3, output = 2, bias = True     w=[[1.0, 2.0, 0.5], [0.1, 0.2, 0.5]], b=[0.3, 0.8]
-          |
-        sigmoid
-          |
-        prob
-    */
-
-    // ------------------------------ 2. 准备好要推理的数据并搬运到GPU   ----------------------------
-    float input_data_host[] = {1, 2, 3};
+   
     float* input_data_device = nullptr;
-
-    float output_data_host[2];
     float* output_data_device = nullptr;
+
     cudaMalloc(&input_data_device, sizeof(input_data_host));
     cudaMalloc(&output_data_device, sizeof(output_data_host));
     cudaMemcpyAsync(input_data_device, input_data_host, sizeof(input_data_host), cudaMemcpyHostToDevice, stream);
 
-    // for (int i = 0; i < engine->getNbIOTensors(); ++i) {
-    //     const char* name = engine->getIOTensorName(i);
-    //     printf("I/O Tensor %d: %s\n", i, name);
-    // }
-    // 设置输入输出张量地址
-    execution_context->setInputTensorAddress("image", input_data_device);
-    execution_context->setOutputTensorAddress("(Unnamed Layer* 5) [Activation]_output", output_data_device);
+    for (int32_t i = 0; i < engine->getNbIOTensors(); i++)
+    {
+      const char* name = engine->getIOTensorName(i);
+      TensorIOMode mode = engine->getTensorIOMode(name);
+
+      // 设置输入输出张量地址      
+      if (mode == TensorIOMode::kINPUT) {
+          std::cout << "输入张量: " << name << std::endl;
+          execution_context->setInputTensorAddress(name, input_data_device);
+      } else if (mode == TensorIOMode::kOUTPUT) {
+          std::cout << "输出张量: " << name << std::endl;
+          execution_context->setOutputTensorAddress(name, output_data_device);
+      }
+    }
 
     // ------------------------------ 3. 推理并将结果搬运回CPU   ----------------------------
     bool success = execution_context->enqueueV3(stream);
