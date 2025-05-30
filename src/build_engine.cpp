@@ -20,8 +20,8 @@ bool createEngine(TRTLogger& logger, const char* onnx_path, bool dynamic_Dim) {
     
     // 2. 构建网络
     // auto network = buildNetwork(logger, builder, onnx_path);
-    // auto network = buildNetwork_CNN(logger, builder);
-    auto network = buildNetwork_FC(logger, builder);
+    auto network = buildNetwork_CNN(logger, builder);
+    // auto network = buildNetwork_FC(logger, builder);
     if (!network)
     {
         return false;

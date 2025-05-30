@@ -6,25 +6,6 @@
 using namespace nvinfer1;
 
 
-/*
-    Network definition:
-
-    image
-      |
-    linear (fully connected)  input = 3, output = 2, bias = True     w=[[1.0, 2.0, 0.5], [0.1, 0.2, 0.5]], b=[0.3, 0.8]
-      |
-    sigmoid
-      |
-    prob
-*/
-// float input_data_host[] = {1, 2, 3};
-// float output_data_host[2];
-
-// 读取数据并分配内存
-float get_data() {
-
-}
-
 // 定义一个函数来加载文件
 auto load_file(const std::string& file) {
   std::ifstream in(file, std::ios::in | std::ios::binary);
@@ -41,7 +22,7 @@ auto load_file(const std::string& file) {
   return data;
 }
 
-bool inference(TRTLogger logger, const char* engine_path, float input_data_host[], float output_data_host[]) {
+bool inference(TRTLogger& logger, const char* engine_path, float input_data_host[], float output_data_host[]) {
     // ------------------------------ 1. 准备模型并加载   ----------------------------    
     auto engine_data = load_file(engine_path);
     if (engine_data.empty())
@@ -84,6 +65,8 @@ bool inference(TRTLogger logger, const char* engine_path, float input_data_host[
     cudaMalloc(&output_data_device, sizeof(output_data_host));
     cudaMemcpyAsync(input_data_device, input_data_host, sizeof(input_data_host), cudaMemcpyHostToDevice, stream);
 
+    // execution_context->setBindingDimensions(0, nvinfer1::Dims4(ib, 1, ih, iw));
+
     for (int32_t i = 0; i < engine->getNbIOTensors(); i++)
     {
       const char* name = engine->getIOTensorName(i);
@@ -101,14 +84,29 @@ bool inference(TRTLogger logger, const char* engine_path, float input_data_host[
 
     // ------------------------------ 3. 推理并将结果搬运回CPU   ----------------------------
     bool success = execution_context->enqueueV3(stream);
+
     cudaMemcpyAsync(output_data_host, output_data_device, sizeof(output_data_host), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
 
-    printf("output_data_host = %f, %f\n", output_data_host[0], output_data_host[1]);
+    // ------------------------------- 4. 输出结果 -------------------------------
+    int ib = 2;
+    int iw = 3;
+    int ih = 3;
+    for(int b = 0; b < ib; ++b){
+        printf("batch %d. output_data_host = \n", b);
+        for(int i = 0; i < iw * ih; ++i){
+            printf("%f, ", output_data_host[b * iw * ih + i]);
+            if((i + 1) % iw == 0)
+                printf("\n");
+        }
+    }
+    // printf("output_data_host = %f, %f\n", output_data_host[0], output_data_host[1]);
 
     // ------------------------------ 4. 释放内存 ----------------------------
     printf("Clean memory\n");
     cudaStreamDestroy(stream);
+
+    return success;
 }
 
 // void inference_dynamic(const char* engine_path){
@@ -129,17 +127,7 @@ bool inference(TRTLogger logger, const char* engine_path, float input_data_host[
 
 
 //     // ------------------------------- 2. 输入与输出 -------------------------------
-//     float input_data_host[] = {
-//         // batch 0
-//         1,   1,   1,
-//         1,   1,   1,
-//         1,   1,   1,
 
-//         // batch 1
-//         -1,   1,   1,
-//         1,   0,   1,
-//         1,   1,   -1
-//     };
 //     float* input_data_device = nullptr;
 
 //     // 3x3输入，对应3x3输出
@@ -147,8 +135,9 @@ bool inference(TRTLogger logger, const char* engine_path, float input_data_host[
 //     int iw = 3;
 //     int ih = 3;
 //     const int output_size = 2 * 3 * 3;  // 使用常量定义数组大小
-//     float output_data_host[output_size];
+
 //     float* output_data_device = nullptr;
+
 //     cudaMalloc(&input_data_device, sizeof(input_data_host));
 //     cudaMalloc(&output_data_device, sizeof(output_data_host));
 //     cudaMemcpyAsync(input_data_device, input_data_host, sizeof(input_data_host), cudaMemcpyHostToDevice, stream);
@@ -156,7 +145,7 @@ bool inference(TRTLogger logger, const char* engine_path, float input_data_host[
 
 //     // ------------------------------- 3. 推理 -------------------------------
 //     // 明确当前推理时，使用的数据输入大小
-//     execution_context->setBindingDimensions(0, nvinfer1::Dims4(ib, 1, ih, iw));
+
 //     float* bindings[] = {input_data_device, output_data_device};
 //     bool success = execution_context->enqueueV2((void**)bindings, stream, nullptr);
 //     cudaMemcpyAsync(output_data_host, output_data_device, sizeof(output_data_host), cudaMemcpyDeviceToHost, stream);

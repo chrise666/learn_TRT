@@ -5,6 +5,6 @@
 
 bool createEngine(TRTLogger& logger, const char* onnx_path=nullptr, bool dynamic_Dim=false);
 
-void inference(TRTLogger logger);
+bool inference(TRTLogger& logger, const char* engine_path, float input_data_host[], float output_data_host[]);
 
 #endif
