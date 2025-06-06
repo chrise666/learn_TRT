@@ -6,11 +6,16 @@ int main() {
     try 
     {
         TRTLogger logger;
-        // const char* onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
 
-        // auto success = createEngine(logger, onnx_path, true);
-        // auto success = createEngine(logger, nullptr, true);
-        // auto success = createEngine(logger);
+        Params params;
+        params.onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
+        params.engine_path = "E:/workspace/learn_TRT/bin/Debug/trtmodel3.engine";
+        params.dynamic_Dim = true;
+        params.bf16 = true;
+        params.fp16 = false;
+        params.int8 = false;
+
+        auto success = createEngine(logger, params);
         
         /*
             Network definition:
@@ -25,6 +30,7 @@ int main() {
         */
         // float input_data_host[] = {1, 2, 3};
         // float output_data_host[2];
+        
         /*
             Network definition:
 
@@ -36,19 +42,20 @@ int main() {
                 |
             prob
         */
-        float input_data_host[] = {
-            // batch 0
-            1,   1,   1,
-            1,   1,   1,
-            1,   1,   1,
+        // float input_data_host[] = {
+        //     // batch 0
+        //     1,   1,   1,
+        //     1,   1,   1,
+        //     1,   1,   1,
 
-            // batch 1
-            -1,   1,   1,
-            1,   0,   1,
-            1,   1,   -1
-        };
-        float output_data_host[2 * 3 * 3];
-        auto success = inference(logger, "trtmodel.engine", input_data_host, output_data_host);
+        //     // batch 1
+        //     -1,   1,   1,
+        //     1,   0,   1,
+        //     1,   1,   -1
+        // };
+        // float output_data_host[2 * 3 * 3];
+        // auto success = inference(logger, engine_path, input_data_host, output_data_host);
+
     } 
     catch (const std::exception& e) 
     {

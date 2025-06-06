@@ -13,7 +13,7 @@ Weights make_weights(float* ptr, int n) {
 }
 
 // 网络构建函数
-UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, const char* onnx_path) {
+UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, Params& mParams) {
     const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     
     auto network = UniqueNetwork(builder->createNetworkV2(explicitBatch));
@@ -23,7 +23,7 @@ UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, const char
 
     // 通过onnxparser解析的结果会填充到network中，类似addConv的方式添加进去
     auto parser = UniqueParser(nvonnxparser::createParser(*network, logger));
-    if(!parser->parseFromFile(onnx_path, 2)){
+    if(!parser->parseFromFile(mParams.onnx_path, 2)){
         printf("Error: %s\n", parser->getError(0)->desc());
         throw std::runtime_error("Failed to parse ONNX model");
     }
@@ -32,12 +32,28 @@ UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, const char
 }
 
 // 引擎构建函数
-UniqueEngine buildEngine(UniqueBuilder& builder, UniqueNetwork& network, UniqueConfig& config, bool dynamic_Dim) {
+UniqueEngine buildEngine(UniqueBuilder& builder, UniqueNetwork& network, UniqueConfig& config, Params& mParams) {
     // 设置工作空间内存池大小（替代 setMaxWorkspaceSize）
     config->setMemoryPoolLimit(MemoryPoolType::kWORKSPACE, 1 << 28); // 256MB
-    printf("Workspace Size = %.2f MB\n", (1 << 28) / 1024.0f / 1024.0f); 
+    printf("Workspace Size = %.2f MB\n", (1 << 28) / 1024.0f / 1024.0f);
 
-    if (dynamic_Dim) {
+    // 设置量化模式
+    if (mParams.fp16)
+    {
+        config->setFlag(BuilderFlag::kFP16);
+    }
+    if (mParams.bf16)
+    {
+        config->setFlag(BuilderFlag::kBF16);
+    }
+    if (mParams.int8)
+    {
+        config->setFlag(BuilderFlag::kINT8);
+        config->setInt8Calibrator(nullptr);
+    }
+
+    // 设置动态尺寸
+    if (mParams.dynamic_Dim) {
         auto input_tensor = network->getInput(0);
         int input_channel = input_tensor->getDimensions().d[1];
         int input_height = input_tensor->getDimensions().d[2];
@@ -64,9 +80,9 @@ UniqueEngine buildEngine(UniqueBuilder& builder, UniqueNetwork& network, UniqueC
 }
 
 // 模型序列化保存函数
-void saveEngine(UniqueEngine& engine, const char* filename) {
+void saveEngine(UniqueEngine& engine, Params& mParams) {
     auto model_data = UniqueHostMemory(engine->serialize());
-    FILE* f = fopen(filename, "wb");
+    FILE* f = fopen(mParams.engine_path, "wb");
     if (!f) {
         throw std::runtime_error("Failed to open file");
     }

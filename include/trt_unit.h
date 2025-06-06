@@ -27,13 +27,13 @@ inline std::unique_ptr<cudaStream_t, decltype(StreamDeleter)> makeCudaStream()
 // 权重创建函数
 nvinfer1::Weights make_weights(float* ptr, int n);
 // 网络构建函数
-UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, const char* onnx_path=nullptr);
+UniqueNetwork buildNetwork(TRTLogger& logger, UniqueBuilder& builder, Params& mParams);
 UniqueNetwork buildNetwork_FC(TRTLogger& logger, UniqueBuilder& builder);
 UniqueNetwork buildNetwork_CNN(TRTLogger& logger, UniqueBuilder& builder);
 // 引擎构建函数
-UniqueEngine buildEngine(UniqueBuilder& builder, UniqueNetwork& network, UniqueConfig& config, bool dynamic_Dim = false);
+UniqueEngine buildEngine(UniqueBuilder& builder, UniqueNetwork& network, UniqueConfig& config, Params& mParams);
 // 模型序列化保存函数
-void saveEngine(UniqueEngine& engine, const char* filename);
+void saveEngine(UniqueEngine& engine, Params& mParams);
 
 
 #endif

@@ -65,7 +65,10 @@ bool inference(TRTLogger& logger, const char* engine_path, float input_data_host
     cudaMalloc(&output_data_device, sizeof(output_data_host));
     cudaMemcpyAsync(input_data_device, input_data_host, sizeof(input_data_host), cudaMemcpyHostToDevice, stream);
 
-    // execution_context->setBindingDimensions(0, nvinfer1::Dims4(ib, 1, ih, iw));
+    // TODO: 这里需要改为自动获取输入张量的形状
+    int ib = 2;
+    int iw = 3;
+    int ih = 3;
 
     for (int32_t i = 0; i < engine->getNbIOTensors(); i++)
     {
@@ -75,6 +78,8 @@ bool inference(TRTLogger& logger, const char* engine_path, float input_data_host
       // 设置输入输出张量地址      
       if (mode == TensorIOMode::kINPUT) {
           std::cout << "输入张量: " << name << std::endl;
+          // TODO: 这里需要改为自动设置输入张量的形状
+          execution_context->setInputShape(name, Dims4(ib, 1, ih, iw));
           execution_context->setInputTensorAddress(name, input_data_device);
       } else if (mode == TensorIOMode::kOUTPUT) {
           std::cout << "输出张量: " << name << std::endl;
@@ -83,15 +88,18 @@ bool inference(TRTLogger& logger, const char* engine_path, float input_data_host
     }
 
     // ------------------------------ 3. 推理并将结果搬运回CPU   ----------------------------
+    // 确保所有动态输入尺寸都已指定
+    if (!execution_context->allInputDimensionsSpecified())
+    {
+        return false;
+    }
     bool success = execution_context->enqueueV3(stream);
 
     cudaMemcpyAsync(output_data_host, output_data_device, sizeof(output_data_host), cudaMemcpyDeviceToHost, stream);
     cudaStreamSynchronize(stream);
 
     // ------------------------------- 4. 输出结果 -------------------------------
-    int ib = 2;
-    int iw = 3;
-    int ih = 3;
+    // TODO: 通用的输出结果方式
     for(int b = 0; b < ib; ++b){
         printf("batch %d. output_data_host = \n", b);
         for(int i = 0; i < iw * ih; ++i){
@@ -102,71 +110,9 @@ bool inference(TRTLogger& logger, const char* engine_path, float input_data_host
     }
     // printf("output_data_host = %f, %f\n", output_data_host[0], output_data_host[1]);
 
-    // ------------------------------ 4. 释放内存 ----------------------------
+    // ------------------------------ 5. 释放内存 ----------------------------
     printf("Clean memory\n");
     cudaStreamDestroy(stream);
 
     return success;
 }
-
-// void inference_dynamic(const char* engine_path){
-//     // ------------------------------- 1. 加载model并反序列化 -------------------------------
-//     TRTLogger logger;
-//     auto engine_data = load_file(engine_path);
-//     nvinfer1::IRuntime* runtime   = nvinfer1::createInferRuntime(logger);
-//     nvinfer1::ICudaEngine* engine = runtime->deserializeCudaEngine(engine_data.data(), engine_data.size());
-//     if(engine == nullptr){
-//         printf("Deserialize cuda engine failed.\n");
-//         runtime->destroy();
-//         return;
-//     }
-
-//     nvinfer1::IExecutionContext* execution_context = engine->createExecutionContext();
-//     cudaStream_t stream = nullptr;
-//     cudaStreamCreate(&stream);
-
-
-//     // ------------------------------- 2. 输入与输出 -------------------------------
-
-//     float* input_data_device = nullptr;
-
-//     // 3x3输入，对应3x3输出
-//     int ib = 2;
-//     int iw = 3;
-//     int ih = 3;
-//     const int output_size = 2 * 3 * 3;  // 使用常量定义数组大小
-
-//     float* output_data_device = nullptr;
-
-//     cudaMalloc(&input_data_device, sizeof(input_data_host));
-//     cudaMalloc(&output_data_device, sizeof(output_data_host));
-//     cudaMemcpyAsync(input_data_device, input_data_host, sizeof(input_data_host), cudaMemcpyHostToDevice, stream);
-
-
-//     // ------------------------------- 3. 推理 -------------------------------
-//     // 明确当前推理时，使用的数据输入大小
-
-//     float* bindings[] = {input_data_device, output_data_device};
-//     bool success = execution_context->enqueueV2((void**)bindings, stream, nullptr);
-//     cudaMemcpyAsync(output_data_host, output_data_device, sizeof(output_data_host), cudaMemcpyDeviceToHost, stream);
-//     cudaStreamSynchronize(stream);
-
-
-//     // ------------------------------- 4. 输出结果 -------------------------------
-//     for(int b = 0; b < ib; ++b){
-//         printf("batch %d. output_data_host = \n", b);
-//         for(int i = 0; i < iw * ih; ++i){
-//             printf("%f, ", output_data_host[b * iw * ih + i]);
-//             if((i + 1) % iw == 0)
-//                 printf("\n");
-//         }
-//     }
-
-//     printf("Clean memory\n");
-//     cudaStreamDestroy(stream);
-//     cudaFree(input_data_device);
-//     cudaFree(output_data_device);
-//     execution_context->destroy();
-//     engine->destroy();
-//     runtime->destroy();
-// }
