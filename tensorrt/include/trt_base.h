@@ -15,6 +15,7 @@
 // c++ standard library
 #include <memory>
 #include <iostream>
+#include <fstream>
 
 
 using Severity = nvinfer1::ILogger::Severity;
@@ -192,7 +193,7 @@ private:
     std::vector<std::string> mImagePaths;
     size_t mImageIndex;
     void* mDeviceInput{nullptr};
-    Dims mInputDims;
+    nvinfer1::Dims mInputDims;
     std::string mCalibrationCacheFile;
     std::vector<char> mCalibrationCache;
 };

@@ -8,8 +8,8 @@ int main() {
         TRTLogger logger;
 
         Params params;
-        params.onnx_path = "E:/workspace/learn_TRT/onnx/SimpleCNN.onnx";
-        params.engine_path = "E:/workspace/learn_TRT/bin/Debug/trtmodel3.engine";
+        params.onnx_path = "E:/workspace/learn_TRT/save/onnx/SimpleCNN.onnx";
+        params.engine_path = "E:/workspace/learn_TRT/save/engine/trtmodel.engine";
         params.dynamic_Dim = true;
         params.bf16 = true;
         params.fp16 = false;
