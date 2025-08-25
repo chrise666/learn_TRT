@@ -1,16 +1,12 @@
 #include <iostream>
 #include <chrono>
-#include "image_utils.hpp"
+#include "cv_utils.hpp"
 
 using namespace std;
 using namespace cv;
 
-int img_process()
-{
-    // 图像路径
-    const string img_path = "C:\\Users\\ADMIN\\Desktop\\xxxx";
-    const string save_path = "C:\\Users\\ADMIN\\Desktop\\xxxx\\res";
-    
+bool img_crop(const string img_path, const string save_path, ImageCropper::Config &cfg)
+{ 
     cout << "Start loading images..." << endl;
 
     try
@@ -22,13 +18,6 @@ int img_process()
         vector<ImageData> all_images = loadAllImages(img_path);
         cout << "Successfully loaded " << all_images.size() 
              << " images" << endl;
-
-        // 批量固定区域裁剪
-        ImageCropper::Config cfg(
-            ImageCropper::FIXED_ROI, 
-            cv::Rect(100, 50, 2048, 2048), // x,y,width,height
-            true                          // 自动调整边界
-        );
 
         // 记录开始时间点
         auto start = std::chrono::high_resolution_clock::now();
@@ -51,8 +40,32 @@ int img_process()
     catch (const exception& e)
     {
         cerr << "Error: " << e.what() << endl;
-        return -1;
+        return false;
     }
 
-    return 0;
+    return true;
+}
+
+bool img_resize(const string img_path, const string save_path, cv::Size target_size)
+{
+    try {
+        // 加载图像
+        cv::Mat image = cv::imread(img_path);
+        if (image.empty()) {
+            throw std::runtime_error("无法加载图像");
+        }
+        
+        std::cout << "原始尺寸: " << image.size() << "\n";
+        
+        // 图像尺寸调整
+        cv::Mat result = ImageResizer::smartResize(image, target_size);
+        std::cout << "调整为: " << target_size << "\n";
+        cv::imwrite(save_path, result);
+    }
+    catch (const std::exception& e) {
+        std::cerr << "错误: " << e.what() << std::endl;
+        return false;
+    }
+
+    return true;
 }

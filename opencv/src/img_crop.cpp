@@ -1,4 +1,4 @@
-#include "image_utils.hpp"
+#include "cv_utils.hpp"
 
 using namespace cv;
 using namespace std;

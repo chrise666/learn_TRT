@@ -5,7 +5,7 @@ add_library(opencv_lib STATIC ${SRC_OpenCV})
 # 添加头文件路径
 target_include_directories(opencv_lib PUBLIC
     include
-    ${OpenCV_INCLUDE_DIRS}
+    # ${OpenCV_INCLUDE_DIRS}
 )
 
 # 链接库

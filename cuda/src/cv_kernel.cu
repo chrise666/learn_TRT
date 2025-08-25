@@ -1,14 +1,8 @@
-#include "image_kernel.cuh"
+#include "cv_kernel.cuh"
 
 using namespace cv;
 
-// CUDA设备检查
-bool checkCudaDevice()
-{
-    int device_count = 0;
-    cudaError_t err = cudaGetDeviceCount(&device_count);
-    return (err == cudaSuccess) && (device_count > 0);
-}
+
 
 // CUDA核函数实现图像裁剪
 __global__ void gpu_crop_kernel(uchar3 *src, int src_width,

@@ -129,4 +129,12 @@ inline void printGPUInfo(const GPUInfo *info) {
     printf("\n");
 }
 
+// CUDA设备检查
+inline bool checkCudaDevice()
+{
+    int device_count = 0;
+    cudaError_t err = cudaGetDeviceCount(&device_count);
+    return (err == cudaSuccess) && (device_count > 0);
+}
+
 #endif // CUDA_TOOL_H

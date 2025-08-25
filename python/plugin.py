@@ -5,6 +5,8 @@ import torch.onnx
 import torch.autograd
 import os
 
+from torch.onnx import register_custom_op_symbolic
+register_custom_op_symbolic("aten::asinh", asinh_symbolic, opset_version=9)
 
 class MYSELUImpl(torch.autograd.Function):
 

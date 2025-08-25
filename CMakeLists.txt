@@ -9,11 +9,13 @@ set(CMAKE_CUDA_STANDARD 17)             # 设置 CUDA 标准
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)    # 强制使用设置的 CUDA 标准
 
 # 设置源文件的编码为 UTF-8
-add_compile_options(
-    "$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/source-charset:utf-8>"
-    # "$<$<AND:$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:MSVC>>:/source-charset:utf-8>"
-    # "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CUDA_COMPILER_ID:NVIDIA>>:-Xcompiler /source-charset:utf-8>"
-)
+# add_compile_options(
+#     "$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/source-charset:utf-8>"
+#     # "$<$<AND:$<COMPILE_LANGUAGE:C>,$<C_COMPILER_ID:MSVC>>:/source-charset:utf-8>"
+#     # "$<$<AND:$<COMPILE_LANGUAGE:CUDA>,$<CUDA_COMPILER_ID:NVIDIA>>:-Xcompiler /source-charset:utf-8>"
+# )
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler /source-charset:utf-8")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /source-charset:utf-8")
 
 # 2. 查找所有依赖库
 # OpenCV
@@ -38,3 +40,4 @@ add_subdirectory(./app)
 add_subdirectory(./cuda)
 add_subdirectory(./opencv)
 add_subdirectory(./tensorrt)
+add_subdirectory(./ort)

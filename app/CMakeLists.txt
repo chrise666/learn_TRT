@@ -7,6 +7,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     trt_lib
     cuda_lib
     opencv_lib
+    onnx_inference
 )
 
 # 设置编译后的程序存放位置

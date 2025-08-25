@@ -1,7 +1,8 @@
-#ifndef IMAGE_UTILS_HPP
-#define IMAGE_UTILS_HPP
+#ifndef CV_UTILS_HPP
+#define CV_UTILS_HPP
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/cuda.hpp>
 #include <string>
 
 
@@ -11,7 +12,7 @@ struct ImageData
     std::string filename;
 
     // 实用方法：生成带后缀的文件名
-    std::string getOutputName(const std::string& suffix = "_cropped") const {
+    std::string getOutputName(const std::string& suffix = "_modified") const {
         size_t dotPos = filename.find_last_of(".");
         if(dotPos == std::string::npos) {
             return filename + suffix;
@@ -63,6 +64,57 @@ private:
 };
 
 
+// 图像尺寸调整
+class ImageResizer {
+public:
+    enum Mode { AUTO, CPU_ONLY, GPU_ONLY };
+    
+    /**
+     * @brief 智能缩放函数
+     * @param src 输入图像
+     * @param target_size 目标尺寸
+     * @param mode 处理模式
+     * @param gpu_threshold GPU加速阈值
+     * @param bg_color 背景填充颜色 (BGR格式)
+     * @return 处理后的图像
+     */
+    static cv::Mat smartResize(const cv::Mat& src,
+                                const cv::Size& target_size,
+                                Mode mode = CPU_ONLY,
+                                int gpu_threshold = 1024*768,
+                                const cv::Scalar& bg_color = cv::Scalar(0, 0, 0));
+    
+    /**
+     * @brief 获取缩放比例和填充区域
+     * @param src_size 原始尺寸
+     * @param target_size 目标尺寸
+     * @return 包含缩放比例和填充信息的结构体
+     */
+    struct ResizeInfo {
+        double scale;       // 缩放比例
+        cv::Rect roi;       // 有效区域
+        cv::Size scaled_size; // 缩放后的尺寸
+    };
+    
+    static ResizeInfo calculateResizeInfo(const cv::Size& src_size, 
+                                        const cv::Size& target_size);
+
+private:
+    // CPU实现
+    static cv::Mat smartResizeCPU(const cv::Mat& src, 
+                                const cv::Size& target_size,
+                                const cv::Scalar& bg_color);
+    
+    // GPU实现
+    static cv::Mat smartResizeGPU(const cv::Mat& src, 
+                                const cv::Size& target_size,
+                                const cv::Scalar& bg_color);
+    
+    // 检查GPU可用性
+    static bool checkCudaSupport();
+};
+
+
 // 加载单张图像并显示（可选）
 cv::Mat loadImage(const std::string &img_path, bool show_img = false);
 
@@ -77,4 +129,4 @@ void saveResults(const std::vector<ImageData>& data,
                 const std::string& suffix = "_cropped");
 
 
-#endif // IMAGE_UTILS_H
+#endif // CV_UTILS_HPP

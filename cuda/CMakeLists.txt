@@ -8,7 +8,7 @@ target_include_directories(cuda_lib PUBLIC
     ${CUDA_INCLUDE_DIRS}
 )
 
-# 链接库路径
+# 链接目录
 target_link_directories(cuda_lib PUBLIC
     ${CUDA_LIBRARIES}
 )
